@@ -123,6 +123,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="fmath.hpp" />
     <ClInclude Include="integrals.h" />
   </ItemGroup>
   <ItemGroup>

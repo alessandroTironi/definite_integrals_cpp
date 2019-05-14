@@ -1,6 +1,8 @@
 #include <emmintrin.h>
 #include <iostream>
 
+#include "fmath.hpp"
+
 #include "integrals.h"
 
 real_t definite_integral_rectangles(function_t function, real_t a, real_t b, precision_t nRects)
@@ -149,23 +151,31 @@ real_t gaussian_prob_sse(float mean, float stdev, real_t a, real_t b, precision_
 	real_t var = stdev * stdev;
 	real_t errors[4];
 	__m128 mm_coeff = { coeff, coeff, coeff, coeff };
+	__m128 mm_half = { -0.5f, -0.5f, -0.5, -0.5f };
+	__m128 mm_var = { var, var, var, var };
+	__m128 mm_mean = { mean, mean, mean, mean };
+	__m128 mm_error;
 
 	for (real_t s = a + h_2; s < b; s += h * 4)
 	{
 		// Computing errors
-		errors[0] = s - mean;
-		errors[1] = s + h - mean;
-		errors[2] = s + h * 2 - mean;
-		errors[3] = s + h * 3 - mean;
-	
-		// Computing exponentials
-		mm =
+		mm_error =
 		{
-			exp(-0.5f * errors[0] * errors[0] / var),
-			exp(-0.5f * errors[1] * errors[1] / var),
-			exp(-0.5f * errors[2] * errors[2] / var),
-			exp(-0.5f * errors[3] * errors[3] / var)
+			s,
+			s + h,
+			s + h * 2,
+			s + h * 3
 		};
+		mm_error = _mm_sub_ps(mm_error, mm_mean);
+
+		// Computing exponentials
+		mm = fmath::exp_ps(
+			_mm_div_ps(
+				_mm_mul_ps(mm_half,
+					_mm_mul_ps(mm_error, mm_error)
+				),
+				mm_var)
+		);
 
 		// Computing area of rects
 		mm = _mm_mul_ps(mm, mm_coeff);

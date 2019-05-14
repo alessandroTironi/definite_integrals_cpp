@@ -18,6 +18,9 @@
     <ClInclude Include="integrals.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="fmath.hpp">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="integrals.cpp">
