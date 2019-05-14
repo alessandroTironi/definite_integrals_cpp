@@ -10,7 +10,7 @@
 // Precision of the integration (number of intervals)
 #define PRECISION 10000
 // Instances to compute for each function.
-#define ITERATIONS 100
+#define ITERATIONS 1000
 
 // Macros for efficient testing code.
 #define GET_TIMESTAMP(timestamp_name)	time_stamp timestamp_name = time_point_cast<microseconds>(system_clock::now())

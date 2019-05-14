@@ -89,7 +89,9 @@ real_t definite_integral_cs_sse(function_t function, real_t a, real_t b, precisi
 
 	// 128bit accumulator
 	__m128 mm_int = { 0.0f, 0.0f, 0.0f, 0.0f };
-	__m128 p;
+	__m128 p, a1, a2, a3;
+	__m128 mm_h_3 = { h_3, h_3, h_3, h_3 };
+	__m128 mm_4 = { 4.0f, 4.0f, 4.0f, 4.0f };
 	float __declspec(align(16)) mm_y[12];
 	
 	float y0, y1, y2, y3, y4, y5, y6, y7, y8;
@@ -107,14 +109,17 @@ real_t definite_integral_cs_sse(function_t function, real_t a, real_t b, precisi
 		y7 = function(s + h * 7);
 		y8 = function(s + h * 8);
 
-		// SIMD sum of partial results.
-		p =
-		{
-			h_3 * (y0 + (4 * y1) + y2),
-			h_3 * (y2 + (4 * y3) + y4),
-			h_3 * (y4 + (4 * y5) + y6),
-			h_3 * (y6 + (4 * y7) + y8)
-		};
+		// Computes current term of CS rule sum.
+		a1 = { y0, y2, y4, y6 };
+		a2 = { y1, y3, y5, y7 };
+		a3 = { y2, y4, y6, y8 };
+		p = _mm_mul_ps(mm_h_3,
+			_mm_add_ps(a1,
+				_mm_add_ps(a3,
+					_mm_mul_ps(a2, mm_4)
+				)
+			)
+		);
 
 		mm_int = _mm_add_ps(mm_int, p);
 		y0 = y8;
