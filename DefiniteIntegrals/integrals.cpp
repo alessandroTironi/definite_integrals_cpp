@@ -235,8 +235,8 @@ real_t gaussian_prob_avx2(float mean, float stdev, real_t a, real_t b, precision
 
 	// Can we still optimize the final sum?
 	float ALIGN_128 int_array[4];
-	__m128 sum4 = _mm_add_ps({ mm_int.m256_f32[0], mm_int.m256_f32[1], mm_int.m256_f32[2], mm_int.m256_f32[3] }, 
-		{ mm_int.m256_f32[4], mm_int.m256_f32[5], mm_int.m256_f32[6], mm_int.m256_f32[7] });
+	__m128* mm128_int = (__m128*) &mm_int;
+	__m128 sum4 = _mm_add_ps(mm128_int[0], mm128_int[1]);
 	_mm_store_ps(int_array, sum4);
 	return int_array[0] + int_array[1] + int_array[2] + int_array[3];
 }
