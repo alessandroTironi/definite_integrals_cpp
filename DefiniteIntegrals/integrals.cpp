@@ -148,30 +148,25 @@ real_t gaussian_prob_sse(float mean, float stdev, real_t a, real_t b, precision_
 #endif
 	real_t h = (b - a) / (real_t)nRects;
 	real_t h_2 = h * 0.5f;
-	__m128 mm_int = { 0.0f, 0.0f, 0.0f, 0.0f };
+	__m128 mm_int = _mm_set_ps1(0.0f);
 	__m128 mm;
-	__m128 mm_h = { h, h, h, h };
 
 	// Computes once the common coefficient of the Gauss function.
 	real_t coeff = 1.0f / (stdev * sqrt(2.0f * 3.141f));
 	real_t var = stdev * stdev;
-	real_t errors[4];
 	__m128 mm_coeff = _mm_set_ps1(coeff);
 	__m128 mm_neg_half = _mm_set_ps1(-0.5f);
 	__m128 mm_var = _mm_set_ps1(var);
 	__m128 mm_mean = _mm_set_ps1(mean);
 	__m128 mm_error;
+	__m128 mm_h = _mm_set_ps1(h);
+	__m128 mm_s;
 
 	for (real_t s = a + h_2; s < b; s += h * 4)
 	{
+	
 		// Computing errors
-		mm_error = 
-		{
-			s,
-			s + h,
-			s + h * 2,
-			s + h * 3
-		};
+		mm_error = _mm_add_ps(_mm_set_ps1(s), _mm_mul_ps(mm_h, m128_INC));
 		mm_error = _mm_sub_ps(mm_error, mm_mean);
 
 		// Computing exponentials
