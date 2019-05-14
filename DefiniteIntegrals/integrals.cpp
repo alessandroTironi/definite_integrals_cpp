@@ -28,8 +28,8 @@ real_t definite_integral_rectangles_sse(function_t function, real_t a, real_t b,
 	real_t step = (b - a) / (real_t)nRects;
 	real_t half_step = step * 0.5f;
 
-	__m128 mm_int = { 0.0f, 0.0f, 0.0f, 0.0f };
-	__m128 mm_step = { step, step, step, step };
+	__m128 mm_int = _mm_set_ps1(0.0f);
+	__m128 mm_step = _mm_set_ps1(step);
 	__m128 heights;
 
 	int nIts = 0;
@@ -90,10 +90,10 @@ real_t definite_integral_cs_sse(function_t function, real_t a, real_t b, precisi
 	real_t h_3 = h / 3.f;
 
 	// 128bit accumulator
-	__m128 mm_int = { 0.0f, 0.0f, 0.0f, 0.0f };
+	__m128 mm_int = _mm_set_ps1(0.0f);
 	__m128 p, a1, a2, a3;
-	__m128 mm_h_3 = { h_3, h_3, h_3, h_3 };
-	__m128 mm_4 = { 4.0f, 4.0f, 4.0f, 4.0f };
+	__m128 mm_h_3 = _mm_set_ps1(h_3);
+	__m128 mm_4 = _mm_set_ps1(4.0f);
 	float __declspec(align(16)) mm_y[12];
 	
 	float y0, y1, y2, y3, y4, y5, y6, y7, y8;
@@ -147,13 +147,13 @@ real_t gaussian_prob_sse(float mean, float stdev, real_t a, real_t b, precision_
 	__m128 mm_h = { h, h, h, h };
 
 	// Computes once the common coefficient of the Gauss function.
-	real_t coeff = 1 / (stdev * sqrt(2 * 3.141f));
+	real_t coeff = 1.0f / (stdev * sqrt(2.0f * 3.141f));
 	real_t var = stdev * stdev;
 	real_t errors[4];
-	__m128 mm_coeff = { coeff, coeff, coeff, coeff };
-	__m128 mm_half = { -0.5f, -0.5f, -0.5, -0.5f };
-	__m128 mm_var = { var, var, var, var };
-	__m128 mm_mean = { mean, mean, mean, mean };
+	__m128 mm_coeff = _mm_set_ps1(coeff);
+	__m128 mm_neg_half = _mm_set_ps1(-0.5f);
+	__m128 mm_var = _mm_set_ps1(var);
+	__m128 mm_mean = _mm_set_ps1(mean);
 	__m128 mm_error;
 
 	for (real_t s = a + h_2; s < b; s += h * 4)
@@ -171,7 +171,7 @@ real_t gaussian_prob_sse(float mean, float stdev, real_t a, real_t b, precision_
 		// Computing exponentials
 		mm = fmath::exp_ps(
 			_mm_div_ps(
-				_mm_mul_ps(mm_half,
+				_mm_mul_ps(mm_neg_half,
 					_mm_mul_ps(mm_error, mm_error)
 				),
 				mm_var)
