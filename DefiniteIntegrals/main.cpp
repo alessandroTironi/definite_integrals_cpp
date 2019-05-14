@@ -87,5 +87,8 @@ int main()
 	// Gaussian intgration with ad-hoc optimization + SSE
 	TEST_PERFORMANCE(gaussian_prob_sse(10.0f, 1.5f, 0.0f, 20.0f, PRECISION), t3_rect_sse,
 		"int(gauss) with ad-hoc optimization (SSE)");
+
+	TEST_PERFORMANCE(gaussian_prob_avx2(10.0f, 1.5f, 0.0f, 20.0f, PRECISION), t3_rect_avx2,
+		"int(gauss) with ad-hoc optimization (AVX2 with m256 registers)");
 }
 

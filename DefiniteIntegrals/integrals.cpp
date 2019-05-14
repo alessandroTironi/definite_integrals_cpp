@@ -5,6 +5,12 @@
 
 #include "integrals.h"
 
+#define ALIGN_256 __declspec(align(32))
+#define ALIGN_128 __declspec(align(16))
+
+const __m256 m256_INC = { 0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f };
+const __m128 m128_INC = { 0.0f, 1.0f, 2.0f, 3.0f };
+
 real_t definite_integral_rectangles(function_t function, real_t a, real_t b, precision_t nRects)
 {
 	real_t step = (b - a) / (real_t)nRects;
@@ -46,7 +52,7 @@ real_t definite_integral_rectangles_sse(function_t function, real_t a, real_t b,
 		mm_int = _mm_add_ps(mm_int, _mm_mul_ps(heights, mm_step));
 	}
 
-	float __declspec(align(16)) int_array[4];
+	float ALIGN_128 int_array[4];
 	_mm_store_ps(int_array, mm_int);
 	return int_array[0] + int_array[1] + int_array[2] + int_array[3];
 }
@@ -94,7 +100,7 @@ real_t definite_integral_cs_sse(function_t function, real_t a, real_t b, precisi
 	__m128 p, a1, a2, a3;
 	__m128 mm_h_3 = _mm_set_ps1(h_3);
 	__m128 mm_4 = _mm_set_ps1(4.0f);
-	float __declspec(align(16)) mm_y[12];
+	float ALIGN_128 mm_y[12];
 	
 	float y0, y1, y2, y3, y4, y5, y6, y7, y8;
 	y0 = function(a);
@@ -127,7 +133,7 @@ real_t definite_integral_cs_sse(function_t function, real_t a, real_t b, precisi
 		y0 = y8;
 	}
 
-	float __declspec(align(16)) int_array[4];
+	float ALIGN_128 int_array[4];
 	_mm_store_ps(int_array, mm_int);
 	return int_array[0] + int_array[1] + int_array[2] + int_array[3];
 }
@@ -159,7 +165,7 @@ real_t gaussian_prob_sse(float mean, float stdev, real_t a, real_t b, precision_
 	for (real_t s = a + h_2; s < b; s += h * 4)
 	{
 		// Computing errors
-		mm_error =
+		mm_error = 
 		{
 			s,
 			s + h,
@@ -183,7 +189,59 @@ real_t gaussian_prob_sse(float mean, float stdev, real_t a, real_t b, precision_
 	}
 
 	// Retrieves result.
-	float __declspec(align(16)) int_array[4];
+	float ALIGN_128 int_array[4];
 	_mm_store_ps(int_array, mm_int);
+	return int_array[0] + int_array[1] + int_array[2] + int_array[3];
+}
+
+real_t gaussian_prob_avx2(float mean, float stdev, real_t a, real_t b, precision_t precision)
+{
+#ifndef NDEBUG
+	int rem = precision % 8;
+	if (rem > 0)
+		precision += rem;
+#endif
+	real_t h = (b - a) / (real_t)precision;
+	real_t h_2 = h * 0.5f;
+	__m256 mm_int = _mm256_set1_ps(0.0f);
+	__m256 mm;
+	__m256 mm_h = _mm256_set1_ps(h);
+
+	// Computes once the common coefficient of the Gauss function.
+	real_t coeff = 1.0f / (stdev * sqrt(2.0f * 3.141f));
+	real_t var = stdev * stdev;
+	__m256 mm_coeff = _mm256_set1_ps(coeff);
+	__m256 mm_neg_half = _mm256_set1_ps(-0.5f);
+	__m256 mm_var = _mm256_set1_ps(var);
+	__m256 mm_mean = _mm256_set1_ps(mean);
+	__m256 mm_s;
+	__m256 mm_error;
+
+	for (real_t s = a + h_2; s < b; s += h * 8)
+	{
+		// Computing errors
+		mm_error = _mm256_mul_ps(_mm256_set1_ps(h), m256_INC);
+		mm_s = _mm256_set1_ps(s);
+		mm_error = _mm256_sub_ps(_mm256_add_ps(mm_s, mm_error), mm_mean);
+
+		// Computing exponentials
+		mm = fmath::exp_ps256(
+			_mm256_div_ps(
+				_mm256_mul_ps(mm_neg_half,
+					_mm256_mul_ps(mm_error, mm_error)
+				),
+			mm_var)
+		);
+
+		// Computing area of rects
+		mm = _mm256_mul_ps(mm, mm_coeff);
+		mm_int = _mm256_add_ps(mm_int, _mm256_mul_ps(mm, mm_h));
+	}
+
+	// Can we still optimize the final sum?
+	float ALIGN_128 int_array[4];
+	__m128 sum4 = _mm_add_ps({ mm_int.m256_f32[0], mm_int.m256_f32[1], mm_int.m256_f32[2], mm_int.m256_f32[3] }, 
+		{ mm_int.m256_f32[4], mm_int.m256_f32[5], mm_int.m256_f32[6], mm_int.m256_f32[7] });
+	_mm_store_ps(int_array, sum4);
 	return int_array[0] + int_array[1] + int_array[2] + int_array[3];
 }
