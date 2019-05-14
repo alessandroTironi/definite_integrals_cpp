@@ -52,9 +52,11 @@ real_t definite_integral_rectangles_sse(function_t function, real_t a, real_t b,
 		mm_int = _mm_add_ps(mm_int, _mm_mul_ps(heights, mm_step));
 	}
 
-	float ALIGN_128 int_array[4];
-	_mm_store_ps(int_array, mm_int);
-	return int_array[0] + int_array[1] + int_array[2] + int_array[3];
+	mm_int = _mm_hadd_ps(mm_int, mm_int);
+	mm_int = _mm_hadd_ps(mm_int, mm_int);
+	float result;
+	_mm_store_ps(&result, mm_int);
+	return result;
 }
 
 
@@ -133,9 +135,11 @@ real_t definite_integral_cs_sse(function_t function, real_t a, real_t b, precisi
 		y0 = y8;
 	}
 
-	float ALIGN_128 int_array[4];
-	_mm_store_ps(int_array, mm_int);
-	return int_array[0] + int_array[1] + int_array[2] + int_array[3];
+	mm_int = _mm_hadd_ps(mm_int, mm_int);
+	mm_int = _mm_hadd_ps(mm_int, mm_int);
+	float result;
+	_mm_store_ps(&result, mm_int);
+	return result;
 }
 
 
@@ -184,9 +188,11 @@ real_t gaussian_prob_sse(float mean, float stdev, real_t a, real_t b, precision_
 	}
 
 	// Retrieves result.
-	float ALIGN_128 int_array[4];
-	_mm_store_ps(int_array, mm_int);
-	return int_array[0] + int_array[1] + int_array[2] + int_array[3];
+	mm_int = _mm_hadd_ps(mm_int, mm_int);
+	mm_int = _mm_hadd_ps(mm_int, mm_int);
+	float result;
+	_mm_store_ps(&result, mm_int);
+	return result;
 }
 
 real_t gaussian_prob_avx2(float mean, float stdev, real_t a, real_t b, precision_t precision)
@@ -234,9 +240,11 @@ real_t gaussian_prob_avx2(float mean, float stdev, real_t a, real_t b, precision
 	}
 
 	// Can we still optimize the final sum?
-	float ALIGN_128 int_array[4];
 	__m128* mm128_int = (__m128*) &mm_int;
-	__m128 sum4 = _mm_add_ps(mm128_int[0], mm128_int[1]);
-	_mm_store_ps(int_array, sum4);
-	return int_array[0] + int_array[1] + int_array[2] + int_array[3];
+	__m128 mm_sum4 = _mm_add_ps(mm128_int[0], mm128_int[1]);
+	mm_sum4 = _mm_hadd_ps(mm_sum4, mm_sum4);
+	mm_sum4 = _mm_hadd_ps(mm_sum4, mm_sum4);
+	float result;
+	_mm_store_ps(&result, mm_sum4);
+	return result;
 }
