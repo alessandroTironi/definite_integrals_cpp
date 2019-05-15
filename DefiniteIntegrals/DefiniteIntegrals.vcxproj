@@ -131,6 +131,7 @@
   <ItemGroup>
     <ClInclude Include="fmath.hpp" />
     <ClInclude Include="integrals.h" />
+    <ClInclude Include="time_measurement.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="integrals.cpp" />

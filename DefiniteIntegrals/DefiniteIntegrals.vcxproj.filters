@@ -21,6 +21,9 @@
     <ClInclude Include="fmath.hpp">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="time_measurement.hpp">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="integrals.cpp">

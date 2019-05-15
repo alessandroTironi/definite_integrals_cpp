@@ -4,6 +4,10 @@
 #include "fmath.hpp"
 
 #include "integrals.h"
+#include "time_measurement.hpp"
+
+time_stamp timer::ts0;
+time_stamp timer::ts1;
 
 #define ALIGN_256 __declspec(align(32))
 #define ALIGN_128 __declspec(align(16))
@@ -19,6 +23,7 @@ const __m128 m128_INC1_2 = _mm_set_ps(5.0f, 6.0f, 7.0f, 8.0f);
 
 real_t definite_integral_rectangles(function_t function, real_t a, real_t b, precision_t nRects)
 {
+	SET_TIMESTAMP_0();
 	real_t step = (b - a) / (real_t)nRects;
 	real_t half_step = step * 0.5f;
 
@@ -26,11 +31,13 @@ real_t definite_integral_rectangles(function_t function, real_t a, real_t b, pre
 	int nIt = 0;
 	for (real_t s = a + half_step; s < b; s += step)
 		i += function(s) * step;
+	SET_TIMESTAMP_1();
 	return i;
 }
 
 real_t definite_integral_rectangles_sse(function_t function, real_t a, real_t b, precision_t precision)
 {
+	SET_TIMESTAMP_0();
 	// Prevents interval overrun.
 	precision = ROUND_4(precision);
 
@@ -56,12 +63,14 @@ real_t definite_integral_rectangles_sse(function_t function, real_t a, real_t b,
 
 	mm_int = _mm_hadd_ps(mm_int, mm_int);
 	mm_int = _mm_hadd_ps(mm_int, mm_int);
+	SET_TIMESTAMP_1();
 	return mm_int.m128_f32[0];
 }
 
 
 real_t definite_integral_cs(function_t function, real_t a, real_t b, precision_t precision)
 {
+	SET_TIMESTAMP_0();
 	// Prevents interval overrun.
 	precision = ROUND_2(precision);
 
@@ -80,11 +89,14 @@ real_t definite_integral_cs(function_t function, real_t a, real_t b, precision_t
 		i += h_3 * (y0 + (4 * y1) + y2);
 		y0 = y2;
 	}
+
+	SET_TIMESTAMP_1();
 	return i;
 }
 
 real_t definite_integral_cs_sse(function_t function, real_t a, real_t b, precision_t precision)
 {
+	SET_TIMESTAMP_0();
 	// Prevents interval overrun
 	precision = ROUND_8(precision);
 
@@ -139,11 +151,15 @@ real_t definite_integral_cs_sse(function_t function, real_t a, real_t b, precisi
 
 	mm_int = _mm_hadd_ps(mm_int, mm_int);
 	mm_int = _mm_hadd_ps(mm_int, mm_int);
+
+	SET_TIMESTAMP_1();
 	return mm_int.m128_f32[0];
 }
 
 real_t gaussian_prob_sse(float mean, float stdev, real_t a, real_t b, precision_t precision)
 {
+	SET_TIMESTAMP_0();
+
 	// Prevents interval overrun.
 	precision = ROUND_4(precision);
 
@@ -186,11 +202,14 @@ real_t gaussian_prob_sse(float mean, float stdev, real_t a, real_t b, precision_
 	// Retrieves result.
 	mm_int = _mm_hadd_ps(mm_int, mm_int);
 	mm_int = _mm_hadd_ps(mm_int, mm_int);
+
+	SET_TIMESTAMP_1();
 	return coeff * mm_int.m128_f32[0];
 }
 
 real_t gaussian_prob_avx2(float mean, float stdev, real_t a, real_t b, precision_t precision)
 {
+	SET_TIMESTAMP_0();
 	// Prevents interval overrun.
 	precision = ROUND_8(precision);
 
@@ -233,5 +252,7 @@ real_t gaussian_prob_avx2(float mean, float stdev, real_t a, real_t b, precision
 	__m128 mm_sum4 = _mm_add_ps(mm128_int[0], mm128_int[1]);
 	mm_sum4 = _mm_hadd_ps(mm_sum4, mm_sum4);
 	mm_sum4 = _mm_hadd_ps(mm_sum4, mm_sum4);
+
+	SET_TIMESTAMP_1();
 	return coeff * mm_sum4.m128_f32[0];
 }
