@@ -25,15 +25,12 @@ real_t definite_integral_rectangles(function_t function, real_t a, real_t b, pre
 	return i;
 }
 
-real_t definite_integral_rectangles_sse(function_t function, real_t a, real_t b, precision_t nRects)
+real_t definite_integral_rectangles_sse(function_t function, real_t a, real_t b, precision_t precision)
 {
-#ifndef NDEBUG
-	// Rounds to the closest multiple of 4.
-	int rem = nRects % 4;
-	if (rem > 0)
-		nRects += rem;
-#endif
-	real_t step = (b - a) / (real_t)nRects;
+	// Prevents interval overrun.
+	precision *= 4;
+
+	real_t step = (b - a) / (real_t)precision;
 	real_t half_step = step * 0.5f;
 
 	__m128 mm_int = _mm_set_ps1(0.0f);
@@ -61,14 +58,12 @@ real_t definite_integral_rectangles_sse(function_t function, real_t a, real_t b,
 }
 
 
-real_t definite_integral_cs(function_t function, real_t a, real_t b, precision_t nIntervals)
+real_t definite_integral_cs(function_t function, real_t a, real_t b, precision_t precision)
 {
-#ifndef NDEBUG
-	if (nIntervals % 2 != 0)
-		++nIntervals;
-#endif
+	// Prevents interval overrun.
+	precision *= 2;
 
-	real_t h = (b - a) / (real_t)nIntervals;
+	real_t h = (b - a) / (real_t)precision;
 	real_t x0, y0, x1, y1, x2, y2;
 	real_t i = 0.0f;
 	real_t h_3 = h / 3.f;
@@ -86,16 +81,13 @@ real_t definite_integral_cs(function_t function, real_t a, real_t b, precision_t
 	return i;
 }
 
-real_t definite_integral_cs_sse(function_t function, real_t a, real_t b, precision_t nIntervals)
+real_t definite_integral_cs_sse(function_t function, real_t a, real_t b, precision_t precision)
 {
-#ifndef NDEBUG
-	int rem = nIntervals % 8;
-	if (rem > 0)
-		nIntervals += rem;
-#endif
+	// Prevents interval overrun
+	precision *= 8;
 
 	// Utility data (compute once to save CPU time)
-	real_t h = (b - a) / (real_t)nIntervals;
+	real_t h = (b - a) / (real_t)precision;
 	real_t h_3 = h / 3.f;
 
 	// 128bit accumulator
@@ -151,15 +143,12 @@ real_t definite_integral_cs_sse(function_t function, real_t a, real_t b, precisi
 	return result;
 }
 
-
-real_t gaussian_prob_sse(float mean, float stdev, real_t a, real_t b, precision_t nRects)
+real_t gaussian_prob_sse(float mean, float stdev, real_t a, real_t b, precision_t precision)
 {
-#ifndef NDEBUG
-	int rem = nRects % 4;
-	if (rem > 0)
-		nRects += rem;
-#endif
-	real_t h = (b - a) / (real_t)nRects;
+	// Prevents interval overrun.
+	precision *= 4;
+
+	real_t h = (b - a) / (real_t)precision;
 	real_t h_2 = h * 0.5f;
 	__m128 mm_int = _mm_set_ps1(0.0f);
 	__m128 mm;
@@ -206,11 +195,9 @@ real_t gaussian_prob_sse(float mean, float stdev, real_t a, real_t b, precision_
 
 real_t gaussian_prob_avx2(float mean, float stdev, real_t a, real_t b, precision_t precision)
 {
-#ifndef NDEBUG
-	int rem = precision % 8;
-	if (rem > 0)
-		precision += rem;
-#endif
+	// Prevents interval overrun.
+	precision *= 8;
+
 	real_t h = (b - a) / (real_t)precision;
 	real_t h_2 = h * 0.5f;
 	__m256 mm_int = _mm256_set1_ps(0.0f);
