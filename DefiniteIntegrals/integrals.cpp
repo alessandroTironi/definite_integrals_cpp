@@ -156,19 +156,19 @@ real_t gaussian_prob_sse(float mean, float stdev, real_t a, real_t b, precision_
 	// Computes once the common coefficient of the Gauss function.
 	real_t coeff = 1.0f / (stdev * sqrt(2.0f * 3.141f));
 	real_t var = stdev * stdev;
-	__m128 mm_coeff = _mm_set_ps1(coeff);
 	__m128 mm_neg_half = _mm_set_ps1(-0.5f);
 	__m128 mm_var = _mm_set_ps1(var);
 	__m128 mm_mean = _mm_set_ps1(mean);
 	__m128 mm_error;
 	__m128 mm_h = _mm_set_ps1(h);
+	__m128 mm_h_inc = _mm_mul_ps(mm_h, m128_INC);
 	__m128 mm_s;
 
 	for (real_t s = a + h_2; s < b; s += h * 4)
 	{
 	
 		// Computing errors
-		mm_error = _mm_add_ps(_mm_set_ps1(s), _mm_mul_ps(mm_h, m128_INC));
+		mm_error = _mm_add_ps(_mm_set_ps1(s), mm_h_inc);
 		mm_error = _mm_sub_ps(mm_error, mm_mean);
 
 		// Computing exponentials
@@ -181,7 +181,6 @@ real_t gaussian_prob_sse(float mean, float stdev, real_t a, real_t b, precision_
 		);
 
 		// Computing area of rects
-		mm = _mm_mul_ps(mm, mm_coeff);
 		mm_int = _mm_add_ps(mm_int, _mm_mul_ps(mm, mm_h));
 	}
 
@@ -190,7 +189,7 @@ real_t gaussian_prob_sse(float mean, float stdev, real_t a, real_t b, precision_
 	mm_int = _mm_hadd_ps(mm_int, mm_int);
 	float result;
 	_mm_store_ps(&result, mm_int);
-	return result;
+	return coeff * result;
 }
 
 real_t gaussian_prob_avx2(float mean, float stdev, real_t a, real_t b, precision_t precision)
@@ -207,7 +206,6 @@ real_t gaussian_prob_avx2(float mean, float stdev, real_t a, real_t b, precision
 	// Computes once the common coefficient of the Gauss function.
 	real_t coeff = 1.0f / (stdev * sqrt(2.0f * 3.141f));
 	real_t var = stdev * stdev;
-	__m256 mm_coeff = _mm256_set1_ps(coeff);
 	__m256 mm_neg_half = _mm256_set1_ps(-0.5f);
 	__m256 mm_var = _mm256_set1_ps(var);
 	__m256 mm_mean = _mm256_set1_ps(mean);
@@ -231,7 +229,6 @@ real_t gaussian_prob_avx2(float mean, float stdev, real_t a, real_t b, precision
 		);
 
 		// Computing area of rects
-		mm = _mm256_mul_ps(mm, mm_coeff);
 		mm_int = _mm256_add_ps(mm_int, _mm256_mul_ps(mm, mm_h));
 	}
 
@@ -242,5 +239,5 @@ real_t gaussian_prob_avx2(float mean, float stdev, real_t a, real_t b, precision
 	mm_sum4 = _mm_hadd_ps(mm_sum4, mm_sum4);
 	float result;
 	_mm_store_ps(&result, mm_sum4);
-	return result;
+	return coeff * result;
 }
