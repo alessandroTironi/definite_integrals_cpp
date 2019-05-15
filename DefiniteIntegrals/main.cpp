@@ -8,7 +8,7 @@
 
 // Test parameters
 // Precision of the integration (number of intervals)
-#define PRECISION_FACTOR 1000
+#define PRECISION 10000
 // Instances to compute for each function.
 #define ITERATIONS 1000
 
@@ -50,7 +50,7 @@ real_t gauss(real_t x)
 int main()
 {
 	std::cout << "Starting performance tests..." << std::endl
-		<< "Precision:\t\t\t" << PRECISION_FACTOR << std::endl
+		<< "Precision:\t\t\t" << PRECISION << std::endl
 		<< "Iterations for each test:\t" << ITERATIONS << std::endl << std::endl;
 
 	/*
@@ -74,26 +74,26 @@ int main()
 
 	std::cout << "Starting Gaussian function tests..." << std::endl;
 	// Gaussian integration with rectangle approximation
-	TEST_PERFORMANCE(definite_integral_rectangles(gauss, -3.0f, 3.0f, PRECISION_FACTOR * 8), t2_rect,
+	TEST_PERFORMANCE(definite_integral_rectangles(gauss, -3.0f, 3.0f, PRECISION), t2_rect,
 		"int(gauss) with rectangles approximation");
 
 	// Gaussian integration with rectangle approximation + SSE
-	TEST_PERFORMANCE(definite_integral_rectangles_sse(gauss, -3.0f, 3.0f, PRECISION_FACTOR * 2), t2_rect_sse,
+	TEST_PERFORMANCE(definite_integral_rectangles_sse(gauss, -3.0f, 3.0f, PRECISION), t2_rect_sse,
 		"int(gauss) with rectangles approximation + SSE");
 
 	// Gaussian integration with Cavalieri-Simpson rule approximation
-	TEST_PERFORMANCE(definite_integral_cs(gauss, -3.0f, 3.0f, PRECISION_FACTOR * 8), t2_cs,
+	TEST_PERFORMANCE(definite_integral_cs(gauss, -3.0f, 3.0f, PRECISION), t2_cs,
 		"int(gauss) with Cavalieri-Simpson rule approximation");
 
 	// Gaussian integration with Cavalieri-Simpson rule approximation + SSE
-	TEST_PERFORMANCE(definite_integral_cs_sse(gauss, -3.0f, 3.0f, PRECISION_FACTOR * 2), t2_cs_sse,
+	TEST_PERFORMANCE(definite_integral_cs_sse(gauss, -3.0f, 3.0f, PRECISION), t2_cs_sse,
 		"int(gauss) with Cavalieri-Simpson rule approximation + SSE");
 
 	// Gaussian intgration with ad-hoc optimization + SSE
-	TEST_PERFORMANCE(gaussian_prob_sse(0.0f, 1.0f, -3.0f, 3.0f, PRECISION_FACTOR * 2), t3_rect_sse,
+	TEST_PERFORMANCE(gaussian_prob_sse(0.0f, 1.0f, -3.0f, 3.0f, PRECISION ), t3_rect_sse,
 		"int(gauss) with ad-hoc optimization (SSE)");
 
-	TEST_PERFORMANCE(gaussian_prob_avx2(0.0f, 1.0f, -3.0f, 3.0f, PRECISION_FACTOR), t3_rect_avx2,
+	TEST_PERFORMANCE(gaussian_prob_avx2(0.0f, 1.0f, -3.0f, 3.0f, PRECISION), t3_rect_avx2,
 		"int(gauss) with ad-hoc optimization (AVX2 with m256 registers)");
 }
 

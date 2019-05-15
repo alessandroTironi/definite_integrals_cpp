@@ -8,6 +8,10 @@
 #define ALIGN_256 __declspec(align(32))
 #define ALIGN_128 __declspec(align(16))
 
+#define ROUND_2(x) x & 0xfffffffe
+#define ROUND_4(x) x & 0xfffffffc
+#define ROUND_8(x) x & 0xfffffff8
+
 const __m256 m256_INC = _mm256_set_ps(0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f);
 const __m128 m128_INC = _mm_set_ps(0.0f, 1.0f, 2.0f, 3.0f);
 const __m128 m128_INC1_1 = _mm_set_ps(1.0f, 2.0f, 3.0f, 4.0f);
@@ -28,7 +32,7 @@ real_t definite_integral_rectangles(function_t function, real_t a, real_t b, pre
 real_t definite_integral_rectangles_sse(function_t function, real_t a, real_t b, precision_t precision)
 {
 	// Prevents interval overrun.
-	precision *= 4;
+	precision = ROUND_4(precision);
 
 	real_t step = (b - a) / (real_t)precision;
 	real_t half_step = step * 0.5f;
@@ -61,7 +65,7 @@ real_t definite_integral_rectangles_sse(function_t function, real_t a, real_t b,
 real_t definite_integral_cs(function_t function, real_t a, real_t b, precision_t precision)
 {
 	// Prevents interval overrun.
-	precision *= 2;
+	precision = ROUND_2(precision);
 
 	real_t h = (b - a) / (real_t)precision;
 	real_t x0, y0, x1, y1, x2, y2;
@@ -84,7 +88,7 @@ real_t definite_integral_cs(function_t function, real_t a, real_t b, precision_t
 real_t definite_integral_cs_sse(function_t function, real_t a, real_t b, precision_t precision)
 {
 	// Prevents interval overrun
-	precision *= 8;
+	precision = ROUND_8(precision);
 
 	// Utility data (compute once to save CPU time)
 	real_t h = (b - a) / (real_t)precision;
@@ -146,7 +150,7 @@ real_t definite_integral_cs_sse(function_t function, real_t a, real_t b, precisi
 real_t gaussian_prob_sse(float mean, float stdev, real_t a, real_t b, precision_t precision)
 {
 	// Prevents interval overrun.
-	precision *= 4;
+	precision = ROUND_4(precision);
 
 	real_t h = (b - a) / (real_t)precision;
 	real_t h_2 = h * 0.5f;
@@ -195,7 +199,7 @@ real_t gaussian_prob_sse(float mean, float stdev, real_t a, real_t b, precision_
 real_t gaussian_prob_avx2(float mean, float stdev, real_t a, real_t b, precision_t precision)
 {
 	// Prevents interval overrun.
-	precision *= 8;
+	precision = ROUND_8(precision);
 
 	real_t h = (b - a) / (real_t)precision;
 	real_t h_2 = h * 0.5f;
