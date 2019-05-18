@@ -15,7 +15,7 @@ public:
 };
 
 // Instances to compute for each function.
-#define ITERATIONS 1000
+#define ITERATIONS 10000
 
 // Macros for efficient code testing.
 #define CREATE_TIMESTAMP(timestamp_name)	time_stamp timestamp_name = time_point_cast<nanoseconds>(system_clock::now())
@@ -43,10 +43,10 @@ public:
 	}																								\
 	real_t out_var = res / (real_t)ITERATIONS;														\
 	std::cout << test_id << std::endl << "\tResult = " << out_var << std::endl						\
-		<< "\tTotal execution time = " << avg << " ms" << std::endl									\
+		/*<< "\tTotal execution time = " << avg << " ms" << std::endl								*/\
 		<< "\tAverage execution time = " << avg / (long double) ITERATIONS << " ms" << std::endl	\
-		<< "\tMinimum time = " << min << " ms" << std::endl											\
-		<< "\tMaximum time = " << max << " ms" << std::endl;										\
+		/*<< "\tMinimum time = " << min << " ms" << std::endl										*/\
+		/*<< "\tMaximum time = " << max << " ms" << std::endl */;										\
 }
 
 #endif
