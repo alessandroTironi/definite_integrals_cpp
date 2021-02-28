@@ -1,0 +1,1 @@
+icc -O3 -xHost main.cpp integrals.cpp
